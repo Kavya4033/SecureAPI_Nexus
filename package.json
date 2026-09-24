@@ -1,0 +1,25 @@
+{
+  "name": "secureapi_nexus",
+  "version": "1.0.0",
+  "description": "Multi-Layer API Security Framework for Mobile Backends",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-all": "npm install --prefix gateway && npm install --prefix backend",
+    "start-gateway": "node gateway/gateway.js",
+    "start-backend": "node backend/server.js",
+    "start-all": "npm-run-all --parallel start-backend start-gateway"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kavya4033/SecureAPI_Nexus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kavya4033/SecureAPI_Nexus/issues"
+  },
+  "homepage": "https://github.com/Kavya4033/SecureAPI_Nexus#readme"
+}

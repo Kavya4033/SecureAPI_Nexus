@@ -1,0 +1,112 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureAPI Nexus - Interactive Sandbox</title>
+    <!-- Tailwind CSS Engine for Quick Styling -->
+     <link rel="stylesheet" href="style.css">
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+    <!-- Header Navigation Grid -->
+    <header class="border-b border-slate-800 bg-slate-950 p-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-black text-emerald-400 tracking-wider">🛡️ SECUREAPI NEXUS</h1>
+            <p class="text-xs text-slate-400">Zero-Trust Mobile Security Architecture Sandbox</p>
+        </div>
+        <div class="flex gap-4 text-xs font-mono">
+            <span class="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full">Gateway: Port 8000</span>
+            <span class="px-3 py-1 bg-blue-950 text-blue-400 border border-blue-800 rounded-full">Backend: Port 5000</span>
+        </div>
+    </header>
+
+    <!-- Main Dynamic 3-Screen Dashboard Workspace Grid -->
+    <main class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+        
+        <!-- ==========================================
+             SCREEN 1: THE USER PORTAL (MOBILE CLIENT SIMULATOR)
+             ========================================== -->
+        <section class="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-md font-bold tracking-wide text-slate-200">📱 Mobile App Simulator</h2>
+                    <span class="text-xs px-2 py-0.5 bg-slate-800 text-slate-400 rounded">Device: iPhone 16</span>
+                </div>
+                
+                <!-- Mock Phone UI Balance Component Card -->
+                <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-800 p-5 rounded-lg mb-4">
+                    <p class="text-xs uppercase text-slate-500 font-bold tracking-wider mb-1">Available Premium Balance</p>
+                    <h3 id="wallet-balance" class="text-3xl font-mono font-black text-slate-300">$--.--</h3>
+                    <div class="mt-4 pt-3 border-t border-slate-800/60 grid grid-cols-2 text-[10px] font-mono text-slate-400">
+                        <div>Account: <span id="acc-num" class="text-slate-200">N/A</span></div>
+                        <div class="text-right">Tracing ID: <span id="auth-cid" class="text-emerald-500 font-bold">None</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-fetch-balance" class="w-full bg-emerald-500 hover:bg-emerald-600 transition text-slate-950 font-bold text-sm py-3 rounded-lg mt-2 shadow-lg shadow-emerald-500/10">
+                🔄 Sync Secure Mobile Profile
+            </button>
+        </section>
+
+        <!-- ==========================================
+             SCREEN 2: THE HACKER'S EXPLOIT PLAYGROUND
+             ========================================== -->
+        <section class="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-md font-bold tracking-wide text-red-400">⚠️ Exploit Playground</h2>
+                    <span class="text-xs px-2 py-0.5 bg-red-950/40 text-red-400 border border-red-900/40 rounded">Attacker Tool</span>
+                </div>
+                <p class="text-xs text-slate-400 mb-4 leading-relaxed">Bypass application client restrictions to explicitly launch malicious requests directly at the edge perimeter gateway routing paths.</p>
+
+                <!-- Exploit Command Array Stack Panels -->
+                <div class="space-y-3">
+                    <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">Payload Threat Injections (SQLi / XSS)</h4>
+                        <div class="flex gap-2">
+                            <button id="btn-attack-sqli" class="flex-1 bg-red-950/60 hover:bg-red-900 transition border border-red-800 text-red-300 text-xs py-2 px-1 font-bold rounded">💥 SQL Injection</button>
+                            <button id="btn-attack-xss" class="flex-1 bg-red-950/60 hover:bg-red-900 transition border border-red-800 text-red-300 text-xs py-2 px-1 font-bold rounded">☣️ Cross-Site Scripting</button>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">Volumetric Layer DOS Exploits</h4>
+                        <button id="btn-attack-rate" class="w-full bg-orange-950/60 hover:bg-orange-900 transition border border-orange-800 text-orange-300 text-xs py-2 font-bold rounded">🌪️ Flood Gateway Rate Limiter (15 Requests)</button>
+                    </div>
+
+                    <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg">
+                        <h4 class="text-xs font-bold text-slate-300 mb-2">Cryptographic Boundary Bypass</h4>
+                        <button id="btn-attack-auth" class="w-full bg-yellow-950/60 hover:bg-yellow-900 transition border border-yellow-800 text-yellow-300 text-xs py-2 font-bold rounded">🚫 Send Corrupted Token Header</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-slate-900 border border-slate-800 rounded-lg font-mono text-[11px] h-20 overflow-y-auto">
+                <span class="text-slate-500">[Terminal Status]:</span> <span id="hacker-terminal" class="text-slate-300">Awaiting vector execution commands...</span>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             SCREEN 3: THE LIVE CENTRAL SECURITY AUDIT FEED
+             ========================================== -->
+        <section class="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col shadow-2xl h-[480px]">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-md font-bold tracking-wide text-sky-400">📊 Live Security Audit Logs</h2>
+                <button id="btn-clear-logs" class="text-[10px] text-slate-500 hover:text-slate-300 underline uppercase tracking-wider">Clear Screen</button>
+            </div>
+            
+            <!-- Real-time Asynchronous Telemetry Feed Logging Container Box -->
+            <div id="log-feed-container" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-3 font-mono text-[11px] overflow-y-auto space-y-2.5">
+                <div class="text-slate-500 italic text-center pt-20">[System Telemetry Framework Listening on Ports...]</div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

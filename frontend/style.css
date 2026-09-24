@@ -1,0 +1,61 @@
+/* ==========================================================================
+   SECUREAPI NEXUS - SANDBOX BASE LAYOUT STYLES
+   ========================================================================== */
+
+/* Modern System Typography Smooth Scaling */
+html, body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Cyberpunk-style Neon Glow Effects for the Dashboard */
+.shadow-emerald-500\/10 {
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -4px rgba(16, 185, 129, 0.1);
+}
+
+/* Highly Scannable Terminal Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #020617; /* Matches Tailwind's bg-slate-950 */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155; /* Matches Tailwind's bg-slate-700 */
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; /* Matches Tailwind's bg-slate-600 */
+}
+
+/* Smooth Interactive Button Micro-Transitions */
+button {
+    will-change: transform, opacity;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Live Telemetry Log Feed Animation Overrides */
+@keyframes pulse-red {
+    0%, 100% {
+        border-color: rgba(220, 38, 38, 0.6);
+        background-color: rgba(127, 29, 29, 0.6);
+    }
+    50% {
+        border-color: rgba(239, 68, 68, 1);
+        background-color: rgba(153, 27, 27, 0.8);
+    }
+}
+
+.animate-pulse {
+    animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

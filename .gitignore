@@ -1,0 +1,12 @@
+# Block heavy dependency folders across all layers
+node_modules/
+package-lock.json? # Optional: clear if you only want root lock files, but safe to leave tracked
+
+# Block sensitive environment variables and credentials
+.env
+.env.local
+.env.development.local
+
+# Block operating system junk files
+.DS_Store
+Thumbs.db
