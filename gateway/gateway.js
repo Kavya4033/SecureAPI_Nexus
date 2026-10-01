@@ -4,11 +4,11 @@ const redis = require('redis');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
-// Import our custom security layers
+// Import your custom security layers and modules
 const authLayer = require('./middlewares/auth');
 const rateLimiterLayer = require('./middlewares/limiter');
 const threatDetectorLayer = require('./middlewares/detector');
-const loggerLayer = require('./middlewares/logger');
+const loggerLayer = require('./middlewares/logger'); // Your updated structured logger script
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -20,18 +20,18 @@ redisClient.connect()
     .then(() => console.log('[SecureAPI Nexus] Cache Layer (Redis) connected.'))
     .catch((err) => console.error('[SecureAPI Nexus] Redis initialization failed:', err));
 
-// Parse incoming JSON payloads strictly for structural threat inspection
+// Core Framework Configurations
 app.use(express.json());
 
 // ==========================================
-// LAYER 0: DISTRIBUTED CORRELATION TRACING
+// LAYER 0: DISTRIBUTED CORRELATION TRACING & AUDITING
 // ==========================================
 app.use((req, res, next) => {
     req.correlationId = req.headers['x-correlation-id'] || uuidv4();
     next();
 });
 
-// Attach the structural auditing log listener 
+// Attach your standardized structured log listener to watch response states
 app.use(loggerLayer.interceptSecurityLogs);
 
 // ==========================================
@@ -41,16 +41,22 @@ const secureProxyOptions = {
     target: BACKEND_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: {
-        '^/v1/mobile': '/internal/account' // Remaps external public routes to private endpoints
+        '^/v1/mobile': '/internal/account' // Remaps public routes to backend routes
     },
     on: {
         proxyReq: (proxyReq, req, res) => {
-            // Forward the validated structural tracing header
             proxyReq.setHeader('X-Correlation-ID', req.correlationId);
             
-            // Context Injection: Inject trusted access info so backends don't re-query the DB
             if (req.user) {
                 proxyReq.setHeader('X-Authenticated-User', JSON.stringify(req.user));
+            }
+
+            // Stream body down safely to bypass the Express json() body hanging issue
+            if (req.body && Object.keys(req.body).length > 0) {
+                const bodyData = JSON.stringify(req.body);
+                proxyReq.setHeader('Content-Type', 'application/json');
+                proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+                proxyReq.write(bodyData);
             }
         }
     }
@@ -62,13 +68,13 @@ const gatewayRoutingEngine = createProxyMiddleware(secureProxyOptions);
 // THE GATEWAY SECURITY PIPELINE
 // ==========================================
 app.use('/v1/mobile', 
-    authLayer, 
-    rateLimiterLayer(redisClient), 
-    threatDetectorLayer, 
-    gatewayRoutingEngine
+    rateLimiterLayer(redisClient), // 1. Check volume capacity bounds via Redis
+    threatDetectorLayer,           // 2. Scan request parameters for SQL Injection anomalies
+    authLayer,                     // 3. Confirm JWT authentication tokens footprint
+    gatewayRoutingEngine           // 4. Dispatch traffic downward onto internal targets
 );
 
-// Fallback error fallback route for unmapped paths
+// Fallback unmapped paths route handler
 app.use((req, res) => {
     res.status(404).json({ error: "Routing path not found inside SecureAPI Nexus Gateway mapping definitions." });
 });

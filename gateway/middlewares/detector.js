@@ -1,20 +1,24 @@
-// Inspects incoming content streams for application exploits
-module.exports = (req, res, next) => {
-    // Only inspect body payloads if payload content exists
-    if (req.body && Object.keys(req.body).length > 0) {
-        const payloadString = JSON.stringify(req.body);
-        
-        // RegEx signatures matching OWASP core rule vulnerability definitions
-        const sqlInjectionPattern = /UNION|SELECT|INSERT|DROP|--|OR 1=1/i;
-        const crossSiteScriptingPattern = /<script.*?>|javascript:/i;
+const { logIncident } = require('./logger');
 
-        if (sqlInjectionPattern.test(payloadString) || crossSiteScriptingPattern.test(payloadString)) {
-            req.securityAlert = 'Malicious attack signature matched inside request payload payload context.';
-            return res.status(400).json({ 
-                error: 'Bad Request: Dynamic injection exploit threat intercepted.', 
-                cid: req.correlationId 
+module.exports = (req, res, next) => {
+    const { accountQuery } = req.body;
+
+    if (accountQuery) {
+        const sqlInjectionRegex = /UNION|SELECT|INSERT|UPDATE|DELETE|--|DROP/i;
+        if (sqlInjectionRegex.test(accountQuery)) {
+            const alertMsg = "Regex Match: Dropped payload containing injection vectors.";
+            
+            // Populate tracking markers for our log interceptor
+            req.securityAlert = alertMsg;
+
+            return res.status(400).json({
+                status: "Blocked",
+                error: "Bad Request / Threat Flagged",
+                message: alertMsg,
+                cid: req.correlationId
             });
         }
     }
+
     next();
 };
